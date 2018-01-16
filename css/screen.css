@@ -3,6 +3,9 @@
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
 }
+html {
+  overflow: hidden;
+}
 body {
   font-family: "microsoft yahei";
   margin: 0 auto;
@@ -14,6 +17,7 @@ body {
 .box {
   height: 1080px;
   position: absolute;
+  overflow: hidden;
   top: 0;
   left: 0;
   transform-origin: 0 0;
