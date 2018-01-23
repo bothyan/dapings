@@ -525,12 +525,12 @@ require(
                 ],
                 itemStyle:{
                     normal: {
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{
                             offset: 0,
-                            color: '#77defd'
+                            color: '#0e5ce1'
                         }, {
                             offset: 1,
-                            color: '#0e5ce1'
+                            color: '#77defd'
                         }])
                     }
                 }
