@@ -580,14 +580,16 @@ require(
                     {
                         name:'交易来源',
                         type:'pie',
-                        radius : ['60%', '80%'],
+                        radius : ['50%', '70%'],
                         itemStyle : {
                             normal : {
                                 label : {
-                                    show : false
+                                    show : true,
+                                    formatter: "{b}({d}%)",
+                                    position:'inner'
                                 },
                                 labelLine : {
-                                    show : false
+                                    show : true
                                 }
                             },
                             emphasis : {
@@ -632,14 +634,16 @@ require(
                     {
                         name:'支付方式',
                         type:'pie',
-                        radius : ['60%', '80%'],
+                        radius : ['40%', '70%'],
                         itemStyle : {
                             normal : {
                                 label : {
-                                    show : false
+                                    show : true,
+                                    formatter: "{b}({d}%)",
+                                    position:'inner'
                                 },
                                 labelLine : {
-                                    show : false
+                                    show : true
                                 }
                             },
                             emphasis : {
