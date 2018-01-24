@@ -153,11 +153,14 @@ require(
                         type : 'category',
                         data : ["01月","02月","03月","04月","05月","06月"],
                         axisLabel:{
-                            interval:0
+                            interval:0,
+                            textStyle:{
+                                fontSize:15
+                            }
                         },
                         axisLine:{
                             lineStyle:{
-                                color:"#8894c4" 
+                                color:"#8894c4"
                             }
                         }
                     }
@@ -168,7 +171,10 @@ require(
                         splitLine:{show: false}, 
                         type : 'value',
                         axisLabel:{
-                            interval:0
+                            interval:0,
+                            textStyle:{
+                                fontSize:15
+                            }
                         },
                         axisLine:{
                             lineStyle:{
@@ -218,7 +224,10 @@ require(
                     boundaryGap : false,
                     data : ["01月","02月","03月","04月","05月","06月"],
                     axisLabel:{
-                        interval:0
+                        interval:0,
+                        textStyle:{
+                            fontSize:15
+                        }
                     },
                     axisLine:{
                         lineStyle:{
@@ -233,7 +242,10 @@ require(
                     splitLine:{show: false}, 
                     type : 'value',
                     axisLabel:{
-                        interval:0
+                        interval:0,
+                        textStyle:{
+                            fontSize:15
+                        }
                     },
                     axisLine:{
                         lineStyle:{
@@ -289,7 +301,10 @@ require(
                         splitLine: {show:false},
                         data :  ["01月","02月","03月","04月","05月","06月"],
                         axisLabel:{
-                            interval:0
+                            interval:0,
+                            textStyle:{
+                                fontSize:15
+                            }
                         },
                         axisLine:{
                             lineStyle:{
@@ -304,7 +319,10 @@ require(
                         splitLine:{show: false}, 
                         type : 'value',
                         axisLabel:{
-                            interval:0
+                            interval:0,
+                            textStyle:{
+                                fontSize:15
+                            }
                         },
                         axisLine:{
                             lineStyle:{
@@ -489,7 +507,10 @@ require(
                         type : 'value',
                         data : ["1000","900","700","600","500","400"],
                         axisLabel:{
-                            interval:0
+                            interval:0,
+                            textStyle:{
+                                fontSize:15
+                            }
                         },
                         axisLine:{
                             lineStyle:{
@@ -505,7 +526,10 @@ require(
                         data : ['餐饮','快销','零售','休闲娱乐','医疗','民生缴费'],
                         splitLine:{show: false}, 
                         axisLabel:{
-                            interval:0
+                            interval:0,
+                            textStyle:{
+                                fontSize:15
+                            }
                         },
                         axisLine:{
                             lineStyle:{
