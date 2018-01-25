@@ -259,6 +259,7 @@ require(
                     name:'交易总笔数',
                     type:'line',
                     symbol:"circle",
+                    smooth:true, 
                     itemStyle: {
                       normal: {
                         color:'#64b9fa',
@@ -398,11 +399,13 @@ require(
                         data : [],
                         itemStyle:{
                                 normal:{
-                                    color:'#1456ce'
+                                    color:'#1456ce',
+                                    borderWidth:2,//省份的边框宽度
+                                    borderColor:'#42d2ff'
                                 }
                             },
                         markPoint : {
-                            symbolSize: 5,       // 标注大小，半宽（半径）参数，当图形为方向或菱形则总宽度为symbolSize * 2
+                            symbolSize: 0,       // 标注大小，半宽（半径）参数，当图形为方向或菱形则总宽度为symbolSize * 2
                             itemStyle: {
                                 normal: {
                                     label: {
@@ -415,22 +418,7 @@ require(
                                 {name: "鄂尔多斯", value: 12},
                                 {name: "招远", value: 12},
                                 {name: "舟山", value: 12},
-                                {name: "齐齐哈尔", value: 14},
-                                {name: "盐城", value: 15},
-                                {name: "赤峰", value: 16},
-                                {name: "青岛", value: 18},
-                                {name: "乳山", value: 18},
-                                {name: "金昌", value: 19},
-                                {name: "泉州", value: 21},
-                                {name: "莱西", value: 21},
-                                {name: "日照", value: 21},
-                                {name: "胶南", value: 22},
-                                {name: "南通", value: 23},
-                                {name: "拉萨", value: 24},
-                                {name: "云浮", value: 24},
-                                {name: "梅州", value: 25},
-                                {name: "文登", value: 25},
-                                {name: "上海", value: 25}   
+                                {name: "齐齐哈尔", value: 500}
                             ]
                         },
                         geoCoord: {
@@ -438,22 +426,7 @@ require(
                             "鄂尔多斯":[109.781327,39.608266],
                             "招远":[120.38,37.35],
                             "舟山":[122.207216,29.985295],
-                            "齐齐哈尔":[123.97,47.33],
-                            "盐城":[120.13,33.38],
-                            "赤峰":[118.87,42.28],
-                            "青岛":[120.33,36.07],
-                            "乳山":[121.52,36.89],
-                            "金昌":[102.188043,38.520089],
-                            "泉州":[118.58,24.93],
-                            "莱西":[120.53,36.86],
-                            "日照":[119.46,35.42],
-                            "胶南":[119.97,35.88],
-                            "南通":[121.05,32.08],
-                            "拉萨":[91.11,29.97],
-                            "云浮":[112.02,22.93],
-                            "梅州":[116.1,24.55],
-                            "文登":[122.05,37.2],
-                            "上海":[121.48,31.22]
+                            "齐齐哈尔":[123.97,47.33]
                         }
                     },
                     {
@@ -464,7 +437,7 @@ require(
                         markPoint : {
                             symbol:'circle',
                             symbolSize : function (v){
-                                return 10 + v/100
+                                return 10 + v/10
                             },
                             effect : {
                                 show: true,
@@ -480,7 +453,7 @@ require(
                                 {name: "鄂尔多斯", value: 12},
                                 {name: "招远", value: 12},
                                 {name: "舟山", value: 12},
-                                {name: "齐齐哈尔", value: 14}
+                                {name: "齐齐哈尔", value: 500}
                             ]
                         }
                     }
@@ -495,7 +468,8 @@ require(
             var option = {
                 
                 tooltip : {
-                    trigger: 'axis'
+                    trigger: 'axis',
+                    formatter: '{c}%'
                 },
                 grid:{
                     x:"17%"
@@ -544,11 +518,13 @@ require(
                         symbol:"arrow",
                         name:'交易总金额',
                         type:'bar',
-                        data:["2000","4000","6000","8000","10000","12000"]
+                        data:["20","40","60","80","100","120"],
+                          itemStyle : { normal: {label : {show: true, position: 'insideRight',formatter: "{c}%",}}}
                     }
                 ],
                 itemStyle:{
                     normal: {
+
                         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{
                             offset: 0,
                             color: '#0e5ce1'
