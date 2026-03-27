@@ -3543,11 +3543,29 @@
             // 提取特征列表
             const features = hrv_correlation_data[0].features.map(f => f.feature);
             
+            // 计算每个特征的上升和下降样本数
+            const featureStats = {};
+            features.forEach(feature => {
+                featureStats[feature] = { increased: 0, decreased: 0 };
+            });
+            
+            hrv_correlation_data.forEach(sample => {
+                sample.features.forEach(feature => {
+                    const before = feature.correlations[0];
+                    const after = feature.correlations[1];
+                    if (after > before) {
+                        featureStats[feature.feature].increased++;
+                    } else if (after < before) {
+                        featureStats[feature.feature].decreased++;
+                    }
+                });
+            });
+            
             // 添加特征列头
             features.forEach(feature => {
                 const th = document.createElement('th');
                 th.className = 'feature-name';
-                th.textContent = feature;
+                th.innerHTML = `${feature}<br><span style="font-size: 12px; font-weight: normal;">上升: <span style="color: red;">${featureStats[feature].increased}</span>, 下降: <span style="color: green;">${featureStats[feature].decreased}</span></span>`;
                 thead.appendChild(th);
             });
             
