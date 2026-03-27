@@ -3555,10 +3555,23 @@
             hrv_correlation_data.forEach((sample, sampleIndex) => {
                 const tr = document.createElement('tr');
                 
+                // 计算上升和下降的数量
+                let increased = 0;
+                let decreased = 0;
+                sample.features.forEach(feature => {
+                    const before = feature.correlations[0];
+                    const after = feature.correlations[1];
+                    if (after > before) {
+                        increased++;
+                    } else if (after < before) {
+                        decreased++;
+                    }
+                });
+                
                 // 添加样本名称单元格
                 const sampleCell = document.createElement('td');
                 sampleCell.className = 'sample-name';
-                sampleCell.textContent = sample.sample_name;
+                sampleCell.innerHTML = `${sample.sample_name}<br><span style="font-size: 12px; font-weight: normal;">上升: <span style="color: red;">${increased}</span>, 下降: <span style="color: green;">${decreased}</span></span>`;
                 tr.appendChild(sampleCell);
                 
                 // 添加每个特征的图表单元格
