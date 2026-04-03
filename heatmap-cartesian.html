@@ -66,8 +66,28 @@
       <p></p>
   </div>
 
+  <div style="width: 90%; height: 600px; margin: 100px auto 0; position: relative;">
+    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图1：原始ECG与生成ECG的心率差异(次/min)</div>
+    <div id="container1" style="width: 100%; height: 90%"></div>
+  </div>
+
+  <div style="width: 90%; height: 600px; margin: 20px auto 0; position: relative;">
+    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图2：原始ECG与原始PPG的心率差异(次/min)</div>
+    <div id="container5" style="width: 100%; height: 90%"></div>
+  </div>
+  
+  <div style="width: 90%; height: 600px; margin: 20px auto 0; position: relative;">
+    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图3：原始ECG与生成ECG的RR间期差异 (ms)</div>
+    <div id="container2" style="width: 100%; height: 90%"></div>
+  </div>
+  
+  <div style="width: 90%; height: 600px; margin: 20px auto 0; position: relative;">
+    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图4：原始ECG与原始PPG的RR间期差异 (ms)</div>
+    <div id="container6" style="width: 100%; height: 90%"></div>
+  </div>
+
   <div style="width: 90%; height: 600px; margin: 50px auto 0; position: relative;">
-    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图1：模型前后的心率差异比较(次/min)</div>
+    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图5：模型前后的心率差异比较(次/min)</div>
     <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">计算方式：每个窗口计算原来的ecg与ppg的心率差异得到1，再计算原来的ecg与生成的ecg的心率差异得到2，2减1得到最终值；<br>值越小表示模型在该窗口的效果越好，绿色表示模型提升，红色表示模型下降</div>
     <div id="container3" style="width: 100%; height: 90%"></div>
     <!-- 热力图3图例 -->
@@ -127,7 +147,7 @@
   </div> 
   
   <div style="width: 90%; height: 600px; margin: 100px auto 0; position: relative;">
-    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图2：模型前后的RR间期差异比较 (ms)</div>
+    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图6：模型前后的RR间期差异比较 (ms)</div>
     <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">计算方式：每个窗口计算原来的ecg与ppg的RR间期差异得到1，再计算原来的ecg与生成的ecg的RR间期差异得到2，2减1得到最终值；<br>值越小表示模型在该窗口的效果越好，绿色表示模型提升，红色表示模型下降</div>
     <div id="container4" style="width: 100%; height: 90%"></div>
     <!-- 热力图4图例 -->
@@ -184,16 +204,6 @@
         </div>
       </div>
     </div>
-  </div>
-
-  <div style="width: 90%; height: 600px; margin: 100px auto 0; position: relative;">
-    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图3：生成ECG与原始ECG的心率差异(次/min)</div>
-    <div id="container1" style="width: 100%; height: 90%"></div>
-  </div>
-  
-  <div style="width: 90%; height: 600px; margin: 20px auto 0; position: relative;">
-    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图4：生成ECG与原始ECG的RR间期差异 (ms)</div>
-    <div id="container2" style="width: 100%; height: 90%"></div>
   </div>
   
   <div class="header" style="margin-top: 100px;">
@@ -10593,7 +10603,7 @@
     // 构建热力图1数据 (ecg_ppg_gen_heart_rate_diff)
     const heatmapData1 = [];
     let maxDiff1 = 0;
-    const fixedMaxValue1 = 20; // 固定最大值，避免极大值影响热力图展示
+    const fixedMaxValue1 = 30; // 固定最大值，避免极大值影响热力图展示
     
     originData.forEach((sample, sampleIndex) => {
         const windowMap = {};
@@ -10625,7 +10635,7 @@
     // 构建热力图2数据 (ecg_ppg_gen_rr_interval_diff)
     const heatmapData2 = [];
     let maxDiff2 = 0;
-    const fixedMaxValue2 = 1; // 固定最大值，避免极大值影响热力图展示
+    const fixedMaxValue2 = 500; // 固定最大值，避免极大值影响热力图展示
     
     originData.forEach((sample, sampleIndex) => {
         const windowMap = {};
@@ -10657,9 +10667,78 @@
             }
         });
     });
-    
-
+  
     // console.log('maxDiff2' , maxDiff2)
+
+
+    // 构建热力图5数据 (ecg_ppg_heart_rate_diff)
+    const heatmapData5 = [];
+    let maxDiff5 = 0;
+    const fixedMaxValue5 = 20; // 固定最大值，避免极大值影响热力图展示
+    
+    originData.forEach((sample, sampleIndex) => {
+        const windowMap = {};
+        sample.window.forEach(window => {
+            // 将原始窗口名转换为w格式作为键
+            const winName = window.windonw_name.replace('window', 'w');
+            windowMap[winName] = window.ecg_ppg_heart_rate_diff;
+            if (window.ecg_ppg_heart_rate_diff > maxDiff5) {
+                maxDiff5 = window.ecg_ppg_heart_rate_diff;
+            }
+        });
+        
+        windowNames.forEach((windowName, windowIndex) => {
+            const value = windowMap[windowName];
+            if (value !== undefined) {
+                heatmapData5.push([windowIndex, sampleIndex, value]);
+            } else {
+                // 缺失数据使用对象格式，直接设置颜色为灰色
+                heatmapData5.push({
+                    value: [windowIndex, sampleIndex, -1],
+                    itemStyle: {
+                        color: '#CCCCCC'
+                    }
+                });
+            }
+        });
+    });
+    
+    // 构建热力图6数据 (ecg_ppg_rr_interval_diff)
+    const heatmapData6 = [];
+    let maxDiff6 = 0;
+    const fixedMaxValue6 = 1; // 固定最大值，避免极大值影响热力图展示
+    
+    originData.forEach((sample, sampleIndex) => {
+        const windowMap = {};
+        sample.window.forEach(window => {
+            // 将原始窗口名转换为w格式作为键
+            const winName = window.windonw_name.replace('window', 'w');
+            // 将RR间期从秒转换为毫秒
+            const rrIntervalDiffMs = window.ecg_ppg_rr_interval_diff * 1000;
+            windowMap[winName] = rrIntervalDiffMs;
+
+            if (rrIntervalDiffMs > maxDiff6) {
+                maxDiff6 = rrIntervalDiffMs;
+            }
+        });
+        
+        windowNames.forEach((windowName, windowIndex) => {
+            const value = windowMap[windowName];
+            if (value !== undefined) {
+                heatmapData6.push([windowIndex, sampleIndex, value]);
+            } else {
+                // 缺失数据使用对象格式，直接设置颜色为灰色
+                heatmapData6.push({
+                    value: [windowIndex, sampleIndex, -1],
+                    itemStyle: {
+                        color: '#CCCCCC'
+                    }
+                });
+            }
+        });
+    });
+  
+
 
     // 构建热力图3数据 (ecg_ppg_gen_heart_rate_diff - ecg_ppg_heart_rate_diff)
     const heatmapData3 = [];
@@ -10974,7 +11053,7 @@
           xAxisIndex: [0],
           start: 0,
           end: 40, // 初始显示50%的窗口
-          zoomLock: true // 锁定缩放，只能拖动
+          zoomLock: false // 锁定缩放，只能拖动
         },
         {
           type: 'inside',
@@ -11077,7 +11156,7 @@
           xAxisIndex: [0],
           start: 0,
           end: 40, // 初始显示50%的窗口
-          zoomLock: true // 锁定缩放，只能拖动
+          zoomLock: false // 锁定缩放，只能拖动
         },
         {
           type: 'inside',
@@ -11121,14 +11200,14 @@
       },
       visualMap: {
         min: 0,
-        max: maxDiff2,
+        max: fixedMaxValue2,
         calculable: true,
         orient: 'horizontal',
         left: 'center',
         bottom: '8%',
-        // inRange: {
-        //   color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
-        // },
+        inRange: {
+          color: ['rgba(212,220,247,1)', '#5070dd']
+        },
         text: ['max', 'min'], // 这里的 text 必须有两个值占位，formatter 才会生效
         formatter: function(value) {
           // toFixed(2) 会将数字保留两位小数
@@ -11166,6 +11245,227 @@
       myChart2.setOption(option2);
     }
 
+
+
+     // 热力图5配置 (心率差异)
+    var option5 = {
+      tooltip: {
+        position: 'top',
+        formatter: function(params) {
+          if (params.value[2] === -1) {
+            return `${sampleNames[params.value[1]]}<br/>${windowNames[params.value[0]]}<br/>无数据`;
+          }
+          return `${sampleNames[params.value[1]]}<br/>${windowNames[params.value[0]]}<br/>心率差异: ${params.value[2].toFixed(5)}`;
+        }
+      },
+      grid: {
+        height: '80%',
+        width: '100%',
+        top: '0%',
+        left: '1%',
+        containLabel: true
+      },
+      dataZoom: [
+        {
+          type: 'slider',
+          show: true,
+          xAxisIndex: [0],
+          start: 0,
+          end: 40, // 初始显示50%的窗口
+          zoomLock: false // 锁定缩放，只能拖动
+        },
+        {
+          type: 'inside',
+          xAxisIndex: [0],
+          start: 0,
+          end: 40,
+          zoomLock: true // 锁定缩放，只能拖动
+        }
+      ],
+      xAxis: {
+        type: 'category',
+        data: windowNames,
+        splitArea: {
+          show: true
+        },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            color: '#000',
+            width: 1
+          }
+        },
+        axisLabel: {
+          rotate: 0,
+          interval: 0 // 每5个窗口显示一个标签
+        }
+      },
+      yAxis: {
+        type: 'category',
+        data: sampleNames,
+        splitArea: {
+          show: true
+        },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            color: '#000',
+            width: 1
+          }
+        }
+      },
+      visualMap: {
+        min: 0,
+        // max: maxDiff5,
+        max: fixedMaxValue1,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        bottom: '8%',
+        // inRange: {
+        //   color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+        // },
+        text: ['max', 'min'], // 这里的 text 必须有两个值占位，formatter 才会生效
+        formatter: function(value) {
+          // toFixed(2) 会将数字保留两位小数
+          return value.toFixed(2); 
+        },
+        show: true
+      },
+      series: [
+        {
+          name: '心率差异',
+          type: 'heatmap',
+          data: heatmapData5,
+          label: {
+            show: false
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }
+      ]
+    };
+    
+    // 热力图6配置 (RR间期差异)
+    var option6 = {
+      tooltip: {
+        position: 'top',
+        formatter: function(params) {
+          if (params.value[2] === -1) {
+            return `${sampleNames[params.value[1]]}<br/>${windowNames[params.value[0]]}<br/>无数据`;
+          }
+          return `${sampleNames[params.value[1]]}<br/>${windowNames[params.value[0]]}<br/>RR间期差异: ${params.value[2].toFixed(5)}`;
+        }
+      },
+      grid: {
+        height: '80%',
+        width: '100%',
+        top: '0%',
+        left: '1%',
+        containLabel: true
+      },
+      dataZoom: [
+        {
+          type: 'slider',
+          show: true,
+          xAxisIndex: [0],
+          start: 0,
+          end: 40, // 初始显示50%的窗口
+          zoomLock: false // 锁定缩放，只能拖动
+        },
+        {
+          type: 'inside',
+          xAxisIndex: [0],
+          start: 0,
+          end: 40,
+          zoomLock: true // 锁定缩放，只能拖动
+        }
+      ],
+      xAxis: {
+        type: 'category',
+        data: windowNames,
+        splitArea: {
+          show: true
+        },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            color: '#000',
+            width: 1
+          }
+        },
+        axisLabel: {
+          rotate: 0,
+          interval: 0 // 每5个窗口显示一个标签
+        }
+      },
+      yAxis: {
+        type: 'category',
+        data: sampleNames,
+        splitArea: {
+          show: true
+        },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            color: '#000',
+            width: 1
+          }
+        }
+      },
+      visualMap: {
+        min: 0,
+        max: fixedMaxValue2,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        bottom: '8%',
+        inRange: {
+          color: ['rgba(212,220,247,1)', '#5070dd']
+        },
+        text: ['max', 'min'], // 这里的 text 必须有两个值占位，formatter 才会生效
+        formatter: function(value) {
+          // toFixed(2) 会将数字保留两位小数
+          return value.toFixed(2); 
+        },
+        show: true
+      },
+      series: [
+        {
+          name: 'RR间期差异',
+          type: 'heatmap',
+          data: heatmapData6,
+          label: {
+            show: false
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }
+      ]
+    };
+
+    // 初始化两个热力图实例
+    var myChart5 = echarts.init(document.getElementById('container5'));
+    var myChart6 = echarts.init(document.getElementById('container6'));
+
+    if (option5 && typeof option5 === 'object') {
+      myChart5.setOption(option5);
+    }
+
+    if (option6 && typeof option6 === 'object') {
+      myChart6.setOption(option6);
+    }
+
+
+
     // 热力图3配置 (心率差异比较)
     var option3 = {
       tooltip: {
@@ -11191,7 +11491,7 @@
           xAxisIndex: [0],
           start: 0,
           end: 40, // 初始显示50%的窗口
-          zoomLock: true // 锁定缩放，只能拖动
+          zoomLock: false // 锁定缩放，只能拖动
         },
         {
           type: 'inside',
@@ -11292,7 +11592,7 @@
           xAxisIndex: [0],
           start: 0,
           end: 40, // 初始显示50%的窗口
-          zoomLock: true // 锁定缩放，只能拖动
+          zoomLock: false // 锁定缩放，只能拖动
         },
         {
           type: 'inside',
@@ -11386,6 +11686,8 @@
       myChart2.resize();
       myChart3.resize();
       myChart4.resize();
+      myChart5.resize();
+      myChart6.resize();
     });
   </script>
 
