@@ -1,0 +1,999 @@
+<!--
+	此示例下载自 https://echarts.apache.org/examples/zh/editor.html?c=heatmap-cartesian
+-->
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+  <meta charset="utf-8">
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .table-container {
+            overflow-x: auto;
+            margin: 0 auto;
+            width: 90%;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 1200px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .sample-name {
+            font-weight: bold;
+            background-color: #f9f9f9;
+            white-space: nowrap;
+            width: 100px;
+        }
+        .chart-cell {
+            width: 120px;
+            height: 100px;
+            position: relative;
+            min-width: 120px;
+        }
+        .chart-container {
+            width: 100%;
+            height: 100%;
+        }
+        .feature-name {
+            /* writing-mode: vertical-rl; */
+            text-orientation: mixed;
+            white-space: nowrap;
+            width: 120px;
+            min-width: 120px;
+        }
+    </style>
+</head>
+<body style="margin: 0">
+
+  <div class="header" style="margin-top: 50px;">
+      <h1>样本与窗口有关心率与RR间期的热力图</h1>
+      <p style="font-size: 16px; padding: 10px; background-color: #f5f5f5; border-radius: 5px; display: inline-block;">
+        <label style="cursor: pointer; display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" id="iconToggle" onclick="toggleIcons()" style="width: 18px; height: 18px;">
+          <span style="font-weight: bold; color: #068de7;">显示睡眠/白天图标</span>
+        </label>
+      </p>
+  </div>
+
+  <div style="width: 95%; height: 800px; margin: 20px auto 0; position: relative;">
+    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图1：原始ECG与生成ECG的心率差异(次/min)</div>
+    <div id="container1" style="width: 100%; height: 90%"></div>
+  </div>
+
+  <div style="width: 95%; height: 800px; margin: 20px auto 0; position: relative;">
+    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图2：原始ECG与原始PPG的心率差异(次/min)</div>
+    <div id="container3" style="width: 100%; height: 90%"></div>
+  </div>
+  
+  <div style="width: 95%; height: 800px; margin: 20px auto 0; position: relative;">
+    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图3：原始ECG与生成ECG的RR间期差异 (ms)</div>
+    <div id="container2" style="width: 100%; height: 90%"></div>
+  </div>
+  
+  <div style="width: 95%; height: 800px; margin: 20px auto 0; position: relative;">
+    <div style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 10px;">热力图4：原始ECG与原始PPG的RR间期差异 (ms)</div>
+    <div id="container4" style="width: 100%; height: 90%"></div>
+  </div>
+
+  <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  
+  <script type="text/javascript">
+
+    function alignTo5Min(timeRange) {
+      // 如果输入为空或者不包含 '-'，直接原样返回
+      if (!timeRange || typeof timeRange !== 'string' || !timeRange.includes('-')) {
+          return timeRange;
+      }
+
+      const [startStr, endStr] = timeRange.split('-');
+
+      // 处理单个时间字符串的内部函数
+      const processTime = (tStr) => {
+          const [h, m] = tStr.split(':').map(Number);
+          
+          // 如果已经是整5分钟，直接返回原格式
+          if (m % 5 === 0) {
+              return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+          }
+          
+          // 向下取整到5的倍数 (例如 28 -> 25, 33 -> 30)
+          let alignedM = Math.floor(m / 5) * 5;
+          let alignedH = h;
+          
+          // 处理跨小时退回的情况 (例如 06:02 -> 退回5分钟变成 05:55)
+          if (alignedM < 0) {
+              alignedM += 60;
+              alignedH -= 1;
+          }
+          
+          // 补零并返回
+          return `${String(alignedH).padStart(2, '0')}:${String(alignedM).padStart(2, '0')}`;
+      };
+
+      // 分别处理开始和结束时间，然后拼回去
+      return `${processTime(startStr)}-${processTime(endStr)}`;
+  }
+
+    let originData = null;
+    
+    // 全局变量存储图表实例
+    let myChart1, myChart2, myChart3, myChart4;
+    
+    // 从JSON文件加载数据
+    async function loadData() {
+        try {
+            // 同时请求两个 JSON 文件
+            const [sleepResponse, dayResponse] = await Promise.all([
+                fetch('json/diff_analysis_sleep.json'),
+                fetch('json/diff_analysis_day.json')
+            ]);
+            
+            if (!sleepResponse.ok || !dayResponse.ok) {
+                throw new Error('Network response was not ok');
+            }
+            
+            const sleepData = await sleepResponse.json();
+            const dayData = await dayResponse.json();
+            
+            // 合并数据
+            originData = sleepData.map(sleepSample => {
+                // 找到对应的白天样本
+                const daySample = dayData.find(day => day.name === sleepSample.name);
+                if (daySample) {
+                    // 合并 window 数组
+                    sleepSample.window = [...sleepSample.window, ...daySample.window];
+                }
+                return sleepSample;
+            });
+
+            // 整体拉齐时间
+            originData.forEach(sample => {
+                sample.window.forEach(item => {
+                  item.time = alignTo5Min(item.time);
+                });
+                
+                // 检查重复的时间窗口
+                const timeSet = new Set();
+                let hasDuplicate = false;
+                sample.window.forEach(item => {
+                    if (timeSet.has(item.time)) {
+                        console.error(`样本 ${sample.name} 存在重复的时间窗口: ${item.time}`);
+                        hasDuplicate = true;
+                    }
+                    timeSet.add(item.time);
+                });
+                
+                if (hasDuplicate) {
+                    // alert(`样本 ${sample.name} 存在重复的时间窗口，请检查数据`);
+                }
+            });  
+
+            console.log('数据加载成功:', originData);
+            processData();
+        } catch (error) {
+            console.error('加载数据失败:', error);
+            alert('加载数据失败，请检查JSON文件路径是否正确');
+        }
+    }
+    
+    // 切换图标显示
+    function toggleIcons() {
+        const showIcons = document.getElementById('iconToggle').checked;
+        
+        // 更新所有图表
+        if (myChart1) {
+            myChart1.setOption({
+                series: [{
+                    label: {
+                        show: showIcons,
+                        fontSize: 10 // 图标大小
+                    }
+                }]
+            });
+        }
+        
+        if (myChart2) {
+            myChart2.setOption({
+                series: [{
+                    label: {
+                        show: showIcons,
+                        fontSize: 10 // 图标大小
+                    }
+                }]
+            });
+        }
+        
+        if (myChart3) {
+            myChart3.setOption({
+                series: [{
+                    label: {
+                        show: showIcons,
+                        fontSize: 10 // 图标大小
+                    }
+                }]
+            });
+        }
+        
+        if (myChart4) {
+            myChart4.setOption({
+                series: [{
+                    label: {
+                        show: showIcons,
+                        fontSize: 10 // 图标大小
+                    }
+                }]
+            });
+        }
+    }
+    
+    function processData() {
+      
+        // 生成24小时内的所有5分钟时间窗口
+        const generateTimeWindows = () => {
+            const windows = [];
+            for (let hour = 0; hour < 24; hour++) {
+                for (let minute = 0; minute < 60; minute += 5) {
+                    const startHour = hour.toString().padStart(2, '0');
+                    const startMinute = minute.toString().padStart(2, '0');
+                    const endHour = (hour + Math.floor((minute + 5) / 60)).toString().padStart(2, '0');
+                    const endMinute = ((minute + 5) % 60).toString().padStart(2, '0');
+                    const endTime = endHour === '24' ? '24:00' : `${endHour}:${endMinute}`;
+                    windows.push(`${startHour}:${startMinute}-${endTime}`);
+                }
+            }
+            return windows;
+        };
+        
+        // 生成时间窗口
+        const timeWindows = generateTimeWindows();
+        
+        // 提取样本名
+        const sampleNames = originData.map(sample => sample.name);
+
+        // 构建热力图1数据 (ecg_ppg_gen_heart_rate_diff)
+        const heatmapData1 = [];
+        let maxDiff1 = 0;
+        const fixedMaxValue1 = 30; // 固定最大值，避免极大值影响热力图展示
+        
+        originData.forEach((sample, sampleIndex) => {
+            const timeMap = {};
+            sample.window.forEach(window => {
+                timeMap[window.time] = window.ecg_ppg_gen_heart_rate_diff;
+                if (window.ecg_ppg_gen_heart_rate_diff > maxDiff1) {
+                    maxDiff1 = window.ecg_ppg_gen_heart_rate_diff;
+                }
+            });
+            
+            timeWindows.forEach((timeWindow, timeIndex) => {
+                const value = timeMap[timeWindow];
+                if (value !== undefined) {
+                    heatmapData1.push([timeIndex, sampleIndex, value]);
+                } else {
+                    // 缺失数据使用对象格式，直接设置颜色为灰色
+                    heatmapData1.push({
+                        value: [timeIndex, sampleIndex, -1],
+                        itemStyle: {
+                            color: '#CCCCCC'
+                        }
+                    });
+                }
+            });
+        });
+        
+        // 构建热力图2数据 (ecg_ppg_gen_rr_interval_diff)
+        const heatmapData2 = [];
+        let maxDiff2 = 0;
+        const fixedMaxValue2 = 500; // 固定最大值，避免极大值影响热力图展示
+        
+        originData.forEach((sample, sampleIndex) => {
+            const timeMap = {};
+            sample.window.forEach(window => {
+                // 将RR间期从秒转换为毫秒
+                const rrIntervalDiffMs = window.ecg_ppg_gen_rr_interval_diff * 1000;
+                timeMap[window.time] = rrIntervalDiffMs;
+
+                if (rrIntervalDiffMs > maxDiff2) {
+                    maxDiff2 = rrIntervalDiffMs;
+                }
+            });
+            
+            timeWindows.forEach((timeWindow, timeIndex) => {
+                const value = timeMap[timeWindow];
+                if (value !== undefined) {
+                    heatmapData2.push([timeIndex, sampleIndex, value]);
+                } else {
+                    // 缺失数据使用对象格式，直接设置颜色为灰色
+                    heatmapData2.push({
+                        value: [timeIndex, sampleIndex, -1],
+                        itemStyle: {
+                            color: '#CCCCCC'
+                        }
+                    });
+                }
+            });
+        });
+      
+
+        // 构建热力图3数据 (ecg_ppg_heart_rate_diff)
+        const heatmapData3 = [];
+        let maxDiff3 = 0;
+        const fixedMaxValue3 = 20; // 固定最大值，避免极大值影响热力图展示
+        
+        originData.forEach((sample, sampleIndex) => {
+            const timeMap = {};
+            sample.window.forEach(window => {
+                timeMap[window.time] = window.ecg_ppg_heart_rate_diff;
+                if (window.ecg_ppg_heart_rate_diff > maxDiff3) {
+                    maxDiff3 = window.ecg_ppg_heart_rate_diff;
+                }
+            });
+            
+            timeWindows.forEach((timeWindow, timeIndex) => {
+                const value = timeMap[timeWindow];
+                if (value !== undefined) {
+                    heatmapData3.push([timeIndex, sampleIndex, value]);
+                } else {
+                    // 缺失数据使用对象格式，直接设置颜色为灰色
+                    heatmapData3.push({
+                        value: [timeIndex, sampleIndex, -1],
+                        itemStyle: {
+                            color: '#CCCCCC'
+                        }
+                    });
+                }
+            });
+        });
+        
+        // 构建热力图4数据 (ecg_ppg_rr_interval_diff)
+        const heatmapData4 = [];
+        let maxDiff4 = 0;
+        const fixedMaxValue4 = 1; // 固定最大值，避免极大值影响热力图展示
+        
+        originData.forEach((sample, sampleIndex) => {
+            const timeMap = {};
+            sample.window.forEach(window => {
+                // 将RR间期从秒转换为毫秒
+                const rrIntervalDiffMs = window.ecg_ppg_rr_interval_diff * 1000;
+                timeMap[window.time] = rrIntervalDiffMs;
+
+                if (rrIntervalDiffMs > maxDiff4) {
+                    maxDiff4 = rrIntervalDiffMs;
+                }
+            });
+            
+            timeWindows.forEach((timeWindow, timeIndex) => {
+                const value = timeMap[timeWindow];
+                if (value !== undefined) {
+                    heatmapData4.push([timeIndex, sampleIndex, value]);
+                } else {
+                    // 缺失数据使用对象格式，直接设置颜色为灰色
+                    heatmapData4.push({
+                        value: [timeIndex, sampleIndex, -1],
+                        itemStyle: {
+                            color: '#CCCCCC'
+                        }
+                    });
+                }
+            });
+        });
+      
+
+        // 热力图1配置 (心率差异)
+        var option1 = {
+          tooltip: {
+            position: 'top',
+            formatter: function(params) {
+              if (params.value[2] === -1) {
+                return `${sampleNames[params.value[1]]}<br/>${timeWindows[params.value[0]]}<br/>无数据`;
+              }
+              // 找到对应的数据项以获取flag信息
+              let flagInfo = '';
+              let icon = '';
+              const sample = originData[params.value[1]];
+              if (sample) {
+                const windowItem = sample.window.find(item => item.time === timeWindows[params.value[0]]);
+                if (windowItem) {
+                  flagInfo = windowItem.flag === 'sleep' ? '睡眠' : '白天';
+                  icon = windowItem.flag === 'sleep' ? '🌙 ' : '☀️ ';
+                }
+              }
+              return `${sampleNames[params.value[1]]}<br/>${icon}${timeWindows[params.value[0]]} (${flagInfo})<br/>心率差异: ${params.value[2].toFixed(5)}`;
+            }
+          },
+          grid: {
+            height: '80%',
+            width: '100%',
+            top: '0%',
+            left: '1%',
+            containLabel: true
+          },
+          dataZoom: [
+            {
+              type: 'slider',
+              show: true,
+              xAxisIndex: [0],
+              start: 0,
+              end: 20, // 初始显示50%的窗口
+              zoomLock: false // 锁定缩放，只能拖动
+            },
+            {
+              type: 'inside',
+              xAxisIndex: [0],
+              start: 0,
+              end: 20,
+              zoomLock: true // 锁定缩放，只能拖动
+            }
+          ],
+          xAxis: {
+            type: 'category',
+            data: timeWindows,
+            splitArea: {
+              show: true
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: '#000',
+                width: 1
+              }
+            },
+            axisLabel: {
+              rotate: 45,
+              interval: 11 // 每12个窗口显示一个标签（每小时）
+            }
+          },
+          yAxis: {
+            type: 'category',
+            data: sampleNames,
+            splitArea: {
+              show: true
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: '#000',
+                width: 1
+              }
+            }
+          },
+          visualMap: {
+            min: 0,
+            // max: maxDiff1,
+            max: fixedMaxValue1,
+            calculable: true,
+            orient: 'horizontal',
+            left: 'center',
+            bottom: '8%',
+            // inRange: {
+            //   color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+            // },
+            text: ['max', 'min'], // 这里的 text 必须有两个值占位，formatter 才会生效
+            formatter: function(value) {
+              // toFixed(2) 会将数字保留两位小数
+              return value.toFixed(2); 
+            },
+            show: true
+          },
+          series: [
+            {
+              name: '心率差异',
+              type: 'heatmap',
+              data: heatmapData1,
+              label: {
+                show: false,
+                fontSize: 10,
+                formatter: function(params) {
+                  // 找到对应的数据项以获取flag信息
+                  let icon = '';
+                  const sample = originData[params.value[1]];
+                  if (sample) {
+                    const windowItem = sample.window.find(item => item.time === timeWindows[params.value[0]]);
+                    if (windowItem) {
+                      icon = windowItem.flag === 'sleep' ? '🌙' : '☀️';
+                    }
+                  }
+                  return icon;
+                }
+              },
+              emphasis: {
+                itemStyle: {
+                  shadowBlur: 10,
+                  shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+              }
+            }
+          ]
+        };
+        
+        // 热力图2配置 (RR间期差异)
+        var option2 = {
+          tooltip: {
+            position: 'top',
+            formatter: function(params) {
+              if (params.value[2] === -1) {
+                return `${sampleNames[params.value[1]]}<br/>${timeWindows[params.value[0]]}<br/>无数据`;
+              }
+              // 找到对应的数据项以获取flag信息
+              let flagInfo = '';
+              let icon = '';
+              const sample = originData[params.value[1]];
+              if (sample) {
+                const windowItem = sample.window.find(item => item.time === timeWindows[params.value[0]]);
+                if (windowItem) {
+                  flagInfo = windowItem.flag === 'sleep' ? '睡眠' : '白天';
+                  icon = windowItem.flag === 'sleep' ? '🌙 ' : '☀️ ';
+                }
+              }
+              return `${sampleNames[params.value[1]]}<br/>${icon}${timeWindows[params.value[0]]} (${flagInfo})<br/>RR间期差异: ${params.value[2].toFixed(5)}`;
+            }
+          },
+          grid: {
+            height: '80%',
+            width: '100%',
+            top: '0%',
+            left: '1%',
+            containLabel: true
+          },
+          dataZoom: [
+            {
+              type: 'slider',
+              show: true,
+              xAxisIndex: [0],
+              start: 0,
+              end: 20, // 初始显示50%的窗口
+              zoomLock: false // 锁定缩放，只能拖动
+            },
+            {
+              type: 'inside',
+              xAxisIndex: [0],
+              start: 0,
+              end: 20,
+              zoomLock: true // 锁定缩放，只能拖动
+            }
+          ],
+          xAxis: {
+            type: 'category',
+            data: timeWindows,
+            splitArea: {
+              show: true
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: '#000',
+                width: 1
+              }
+            },
+            axisLabel: {
+              rotate: 45,
+              interval: 11 // 每12个窗口显示一个标签（每小时）
+            }
+          },
+          yAxis: {
+            type: 'category',
+            data: sampleNames,
+            splitArea: {
+              show: true
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: '#000',
+                width: 1
+              }
+            }
+          },
+          visualMap: {
+            min: 0,
+            max: fixedMaxValue2,
+            calculable: true,
+            orient: 'horizontal',
+            left: 'center',
+            bottom: '8%',
+            inRange: {
+              color: ['rgba(212,220,247,1)', '#5070dd']
+            },
+            text: ['max', 'min'], // 这里的 text 必须有两个值占位，formatter 才会生效
+            formatter: function(value) {
+              // toFixed(2) 会将数字保留两位小数
+              return value.toFixed(2); 
+            },
+            show: true
+          },
+          series: [
+            {
+              name: 'RR间期差异',
+              type: 'heatmap',
+              data: heatmapData2,
+              label: {
+                show: false,
+                fontSize: 10,
+                formatter: function(params) {
+                  // 找到对应的数据项以获取flag信息
+                  let icon = '';
+                  const sample = originData[params.value[1]];
+                  if (sample) {
+                    const windowItem = sample.window.find(item => item.time === timeWindows[params.value[0]]);
+                    if (windowItem) {
+                      icon = windowItem.flag === 'sleep' ? '🌙' : '☀️';
+                    }
+                  }
+                  return icon;
+                }
+              },
+              emphasis: {
+                itemStyle: {
+                  shadowBlur: 10,
+                  shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+              }
+            }
+          ]
+        };
+
+        // 初始化两个热力图实例
+        myChart1 = echarts.init(document.getElementById('container1'));
+        myChart2 = echarts.init(document.getElementById('container2'));
+
+        if (option1 && typeof option1 === 'object') {
+          myChart1.setOption(option1);
+        }
+        
+        if (option2 && typeof option2 === 'object') {
+          myChart2.setOption(option2);
+        }
+
+        // 热力图3配置 (心率差异)
+        var option3 = {
+          tooltip: {
+            position: 'top',
+            formatter: function(params) {
+              if (params.value[2] === -1) {
+                return `${sampleNames[params.value[1]]}<br/>${timeWindows[params.value[0]]}<br/>无数据`;
+              }
+              // 找到对应的数据项以获取flag信息
+              let flagInfo = '';
+              let icon = '';
+              const sample = originData[params.value[1]];
+              if (sample) {
+                const windowItem = sample.window.find(item => item.time === timeWindows[params.value[0]]);
+                if (windowItem) {
+                  flagInfo = windowItem.flag === 'sleep' ? '睡眠' : '白天';
+                  icon = windowItem.flag === 'sleep' ? '🌙 ' : '☀️ ';
+                }
+              }
+              return `${sampleNames[params.value[1]]}<br/>${icon}${timeWindows[params.value[0]]} (${flagInfo})<br/>心率差异: ${params.value[2].toFixed(5)}`;
+            }
+          },
+          grid: {
+            height: '80%',
+            width: '100%',
+            top: '0%',
+            left: '1%',
+            containLabel: true
+          },
+          dataZoom: [
+            {
+              type: 'slider',
+              show: true,
+              xAxisIndex: [0],
+              start: 0,
+              end: 20, // 初始显示50%的窗口
+              zoomLock: false // 锁定缩放，只能拖动
+            },
+            {
+              type: 'inside',
+              xAxisIndex: [0],
+              start: 0,
+              end: 20,
+              zoomLock: true // 锁定缩放，只能拖动
+            }
+          ],
+          xAxis: {
+            type: 'category',
+            data: timeWindows,
+            splitArea: {
+              show: true
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: '#000',
+                width: 1
+              }
+            },
+            axisLabel: {
+              rotate: 45,
+              interval: 11 // 每12个窗口显示一个标签（每小时）
+            }
+          },
+          yAxis: {
+            type: 'category',
+            data: sampleNames,
+            splitArea: {
+              show: true
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: '#000',
+                width: 1
+              }
+            }
+          },
+          visualMap: {
+            min: 0,
+            // max: maxDiff3,
+            max: fixedMaxValue1,
+            calculable: true,
+            orient: 'horizontal',
+            left: 'center',
+            bottom: '8%',
+            // inRange: {
+            //   color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+            // },
+            text: ['max', 'min'], // 这里的 text 必须有两个值占位，formatter 才会生效
+            formatter: function(value) {
+              // toFixed(2) 会将数字保留两位小数
+              return value.toFixed(2); 
+            },
+            show: true
+          },
+          series: [
+            {
+              name: '心率差异',
+              type: 'heatmap',
+              data: heatmapData3,
+              label: {
+                show: false,
+                fontSize: 10,
+                formatter: function(params) {
+                  // 找到对应的数据项以获取flag信息
+                  let icon = '';
+                  const sample = originData[params.value[1]];
+                  if (sample) {
+                    const windowItem = sample.window.find(item => item.time === timeWindows[params.value[0]]);
+                    if (windowItem) {
+                      icon = windowItem.flag === 'sleep' ? '🌙' : '☀️';
+                    }
+                  }
+                  return icon;
+                }
+              },
+              emphasis: {
+                itemStyle: {
+                  shadowBlur: 10,
+                  shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+              }
+            }
+          ]
+        };
+        
+        // 热力图4配置 (RR间期差异)
+        var option4 = {
+          tooltip: {
+            position: 'top',
+            formatter: function(params) {
+              if (params.value[2] === -1) {
+                return `${sampleNames[params.value[1]]}<br/>${timeWindows[params.value[0]]}<br/>无数据`;
+              }
+              // 找到对应的数据项以获取flag信息
+              let flagInfo = '';
+              let icon = '';
+              const sample = originData[params.value[1]];
+              if (sample) {
+                const windowItem = sample.window.find(item => item.time === timeWindows[params.value[0]]);
+                if (windowItem) {
+                  flagInfo = windowItem.flag === 'sleep' ? '睡眠' : '白天';
+                  icon = windowItem.flag === 'sleep' ? '🌙 ' : '☀️ ';
+                }
+              }
+              return `${sampleNames[params.value[1]]}<br/>${icon}${timeWindows[params.value[0]]} (${flagInfo})<br/>RR间期差异: ${params.value[2].toFixed(5)}`;
+            }
+          },
+          grid: {
+            height: '80%',
+            width: '100%',
+            top: '0%',
+            left: '1%',
+            containLabel: true
+          },
+          dataZoom: [
+            {
+              type: 'slider',
+              show: true,
+              xAxisIndex: [0],
+              start: 0,
+              end: 20, // 初始显示50%的窗口
+              zoomLock: false // 锁定缩放，只能拖动
+            },
+            {
+              type: 'inside',
+              xAxisIndex: [0],
+              start: 0,
+              end: 20,
+              zoomLock: true // 锁定缩放，只能拖动
+            }
+          ],
+          xAxis: {
+            type: 'category',
+            data: timeWindows,
+            splitArea: {
+              show: true
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: '#000',
+                width: 1
+              }
+            },
+            axisLabel: {
+              rotate: 45,
+              interval: 11 // 每12个窗口显示一个标签（每小时）
+            }
+          },
+          yAxis: {
+            type: 'category',
+            data: sampleNames,
+            splitArea: {
+              show: true
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: '#000',
+                width: 1
+              }
+            }
+          },
+          visualMap: {
+            min: 0,
+            max: fixedMaxValue2,
+            calculable: true,
+            orient: 'horizontal',
+            left: 'center',
+            bottom: '8%',
+            inRange: {
+              color: ['rgba(212,220,247,1)', '#5070dd']
+            },
+            text: ['max', 'min'], // 这里的 text 必须有两个值占位，formatter 才会生效
+            formatter: function(value) {
+              // toFixed(2) 会将数字保留两位小数
+              return value.toFixed(2); 
+            },
+            show: true
+          },
+          series: [
+            {
+              name: 'RR间期差异',
+              type: 'heatmap',
+              data: heatmapData4,
+              label: {
+                show: false,
+                fontSize: 10,
+                formatter: function(params) {
+                  // 找到对应的数据项以获取flag信息
+                  let icon = '';
+                  const sample = originData[params.value[1]];
+                  if (sample) {
+                    const windowItem = sample.window.find(item => item.time === timeWindows[params.value[0]]);
+                    if (windowItem) {
+                      icon = windowItem.flag === 'sleep' ? '🌙' : '☀️';
+                    }
+                  }
+                  return icon;
+                }
+              },
+              emphasis: {
+                itemStyle: {
+                  shadowBlur: 10,
+                  shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+              }
+            }
+          ]
+        };
+
+        // 初始化两个热力图实例
+        myChart3 = echarts.init(document.getElementById('container3'));
+        myChart4 = echarts.init(document.getElementById('container4'));
+
+        if (option3 && typeof option3 === 'object') {
+          myChart3.setOption(option3);
+        }
+
+        if (option4 && typeof option4 === 'object') {
+          myChart4.setOption(option4);
+        }
+      
+        window.addEventListener('resize', function() {
+          myChart1.resize();
+          myChart2.resize();
+          myChart3.resize();
+          myChart4.resize();
+        });
+
+    }  
+
+    window.onload = function() {
+        loadData();
+    };
+
+  </script>
+
+  <script>
+        // {
+      //   "window_name": "window1",
+      //   "time": "09:19-09:24",
+      //   "flag": "day",
+      //   "ecg_ppg_gen_heart_rate_diff": 17.78296443998026,
+      //   "ecg_ppg_gen_rr_interval_diff": 0.1403488130306707,
+      //   "ecg_ppg_heart_rate_diff": 13.021142475796381,
+      //   "ecg_ppg_rr_interval_diff": 0.12799072284499435
+      // },
+      // {
+      //   "window_name": "window2",
+      //   "time": "10:59-11:04",
+      //   "flag": "day",
+      //   "ecg_ppg_gen_heart_rate_diff": 4.718061178228055,
+      //   "ecg_ppg_gen_rr_interval_diff": 0.011429776674937941,
+      //   "ecg_ppg_heart_rate_diff": 3.2892900929992663,
+      //   "ecg_ppg_rr_interval_diff": 0.018800456968773527
+      // },
+      // {
+      //   "window_name": "window3",
+      //   "time": "11:04-11:09",
+      //   "flag": "day",
+      //   "ecg_ppg_gen_heart_rate_diff": 5.636017856192751,
+      //   "ecg_ppg_gen_rr_interval_diff": 0.11495384615384618,
+      //   "ecg_ppg_heart_rate_diff": 8.6983335408558,
+      //   "ecg_ppg_rr_interval_diff": 0.03638181818181796
+      // },
+      // {
+      //   "window_name": "window4",
+      //   "time": "11:09-11:14",
+      //   "flag": "day",
+      //   "ecg_ppg_gen_heart_rate_diff": 7.131353490488948,
+      //   "ecg_ppg_gen_rr_interval_diff": 0.013545454545454638,
+      //   "ecg_ppg_heart_rate_diff": 1.7059815250616737,
+      //   "ecg_ppg_rr_interval_diff": 0.020051136363636424
+      // },
+      // {
+      //   "window_name": "window5",
+      //   "time": "11:14-11:19",
+      //   "flag": "day",
+      //   "ecg_ppg_gen_heart_rate_diff": 24.66713830269599,
+      //   "ecg_ppg_gen_rr_interval_diff": 0.24851322751322735,
+      //   "ecg_ppg_heart_rate_diff": 22.008703893672575,
+      //   "ecg_ppg_rr_interval_diff": 0.2543528265107211
+      // },
+      // {
+      //   "window_name": "window6",
+      //   "time": "11:19-11:24",
+      //   "flag": "day",
+      //   "ecg_ppg_gen_heart_rate_diff": 15.985743056754828,
+      //   "ecg_ppg_gen_rr_interval_diff": 0.07085936285936278,
+      //   "ecg_ppg_heart_rate_diff": 12.885893377107408,
+      //   "ecg_ppg_rr_interval_diff": 0.06405128205128208
+      // },
+  </script>
+</body>
+</html>

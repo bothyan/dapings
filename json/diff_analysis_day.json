@@ -3,60 +3,6 @@
     "name": "SW-01",
     "window": [
       {
-        "window_name": "window1",
-        "time": "09:19-09:24",
-        "flag": "day",
-        "ecg_ppg_gen_heart_rate_diff": 17.78296443998026,
-        "ecg_ppg_gen_rr_interval_diff": 0.1403488130306707,
-        "ecg_ppg_heart_rate_diff": 13.021142475796381,
-        "ecg_ppg_rr_interval_diff": 0.12799072284499435
-      },
-      {
-        "window_name": "window2",
-        "time": "10:59-11:04",
-        "flag": "day",
-        "ecg_ppg_gen_heart_rate_diff": 4.718061178228055,
-        "ecg_ppg_gen_rr_interval_diff": 0.011429776674937941,
-        "ecg_ppg_heart_rate_diff": 3.2892900929992663,
-        "ecg_ppg_rr_interval_diff": 0.018800456968773527
-      },
-      {
-        "window_name": "window3",
-        "time": "11:04-11:09",
-        "flag": "day",
-        "ecg_ppg_gen_heart_rate_diff": 5.636017856192751,
-        "ecg_ppg_gen_rr_interval_diff": 0.11495384615384618,
-        "ecg_ppg_heart_rate_diff": 8.6983335408558,
-        "ecg_ppg_rr_interval_diff": 0.03638181818181796
-      },
-      {
-        "window_name": "window4",
-        "time": "11:09-11:14",
-        "flag": "day",
-        "ecg_ppg_gen_heart_rate_diff": 7.131353490488948,
-        "ecg_ppg_gen_rr_interval_diff": 0.013545454545454638,
-        "ecg_ppg_heart_rate_diff": 1.7059815250616737,
-        "ecg_ppg_rr_interval_diff": 0.020051136363636424
-      },
-      {
-        "window_name": "window5",
-        "time": "11:14-11:19",
-        "flag": "day",
-        "ecg_ppg_gen_heart_rate_diff": 24.66713830269599,
-        "ecg_ppg_gen_rr_interval_diff": 0.24851322751322735,
-        "ecg_ppg_heart_rate_diff": 22.008703893672575,
-        "ecg_ppg_rr_interval_diff": 0.2543528265107211
-      },
-      {
-        "window_name": "window6",
-        "time": "11:19-11:24",
-        "flag": "day",
-        "ecg_ppg_gen_heart_rate_diff": 15.985743056754828,
-        "ecg_ppg_gen_rr_interval_diff": 0.07085936285936278,
-        "ecg_ppg_heart_rate_diff": 12.885893377107408,
-        "ecg_ppg_rr_interval_diff": 0.06405128205128208
-      },
-      {
         "window_name": "window7",
         "time": "11:24-11:29",
         "flag": "day",
