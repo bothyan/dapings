@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tab切换图片展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            padding: 20px;
+        }
+
+        .section {
+            width: 90%;
+            margin: 0 auto 60px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .section-title {
+            text-align: center;
+            padding: 16px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .tabs-container {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 16px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 500;
+            color: #6c757d;
+            position: relative;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .tabs-container.sticky {
+            position: fixed;
+            top: 0;
+            left: 5%;
+            right: 5%;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 8px 8px;
+        }
+
+        .content-container {
+            padding: 30px;
+        }
+
+        .images-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            justify-content: center;
+            align-items: center;
+            /* min-height: 800px; */
+        }
+
+        .image-container {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.5s ease;
+        }
+
+
+
+        .image-label {
+            text-align: center;
+            padding: 12px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #495057;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* 渐变过渡动画 */
+        .fade-enter-active,
+        .fade-leave-active {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .fade-enter-from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .fade-leave-to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 900px) {
+            .images-wrapper {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .image-container {
+                max-width: 100%;
+            }
+
+            .tab {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+
+            .section-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-title">所有有效样本（72）的分折验证</div>
+    
+    <!-- 第一部分：2个tab -->
+    <div class="section">
+        <div class="section-title">第一部分</div>
+        <div class="tabs-container">
+            <div class="tab active" data-tab="part1-tab1">第一折</div>
+            <div class="tab" data-tab="part1-tab2">第二折</div>
+        </div>
+        <div class="content-container">
+            <div class="tab-content active" id="part1-tab1">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/2parts/睡眠个体内HRV特征相关性对比2(1).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/2parts/睡眠个体间HRV特征相关性对比2(1).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="part1-tab2">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/2parts/睡眠个体内HRV特征相关性对比2(2).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/2parts/睡眠个体间HRV特征相关性对比2(2).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第二部分：3个tab -->
+    <div class="section">
+        <div class="section-title">第二部分</div>
+        <div class="tabs-container">
+            <div class="tab active" data-tab="part2-tab1">第一折</div>
+            <div class="tab" data-tab="part2-tab2">第二折</div>
+            <div class="tab" data-tab="part2-tab3">第三折</div>
+        </div>
+        <div class="content-container">
+            <div class="tab-content active" id="part2-tab1">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/3parts/睡眠个体内HRV特征相关性对比3(1).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/3parts/睡眠个体间HRV特征相关性对比3(1).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="part2-tab2">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/3parts/睡眠个体内HRV特征相关性对比3(2).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/3parts/睡眠个体间HRV特征相关性对比3(2).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="part2-tab3">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/3parts/睡眠个体内HRV特征相关性对比3(3).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/3parts/睡眠个体间HRV特征相关性对比3(3).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第三部分：4个tab -->
+    <div class="section">
+        <div class="section-title">第三部分</div>
+        <div class="tabs-container">
+            <div class="tab active" data-tab="part3-tab1">第一折</div>
+            <div class="tab" data-tab="part3-tab2">第二折</div>
+            <div class="tab" data-tab="part3-tab3">第三折</div>
+            <div class="tab" data-tab="part3-tab4">第四折</div>
+        </div>
+        <div class="content-container">
+            <div class="tab-content active" id="part3-tab1">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/4parts/睡眠个体内HRV特征相关性对比4(1).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/4parts/睡眠个体间HRV特征相关性对比4(1).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="part3-tab2">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/4parts/睡眠个体内HRV特征相关性对比4(2).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/4parts/睡眠个体间HRV特征相关性对比4(2).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="part3-tab3">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/4parts/睡眠个体内HRV特征相关性对比4(3).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/4parts/睡眠个体间HRV特征相关性对比4(3).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="part3-tab4">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/4parts/睡眠个体内HRV特征相关性对比4(4).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/4parts/睡眠个体间HRV特征相关性对比4(4).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第四部分：5个tab -->
+    <div class="section">
+        <div class="section-title">第四部分</div>
+        <div class="tabs-container">
+            <div class="tab active" data-tab="part4-tab1">第一折</div>
+            <div class="tab" data-tab="part4-tab2">第二折</div>
+            <div class="tab" data-tab="part4-tab3">第三折</div>
+            <div class="tab" data-tab="part4-tab4">第四折</div>
+            <div class="tab" data-tab="part4-tab5">第五折</div>
+        </div>
+        <div class="content-container">
+            <div class="tab-content active" id="part4-tab1">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/5parts/睡眠个体内HRV特征相关性对比5(1).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/5parts/睡眠个体间HRV特征相关性对比5(1).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="part4-tab2">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/5parts/睡眠个体内HRV特征相关性对比5(2).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/5parts/睡眠个体间HRV特征相关性对比5(2).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="part4-tab3">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/5parts/睡眠个体内HRV特征相关性对比5(3).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/5parts/睡眠个体间HRV特征相关性对比5(3).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="part4-tab4">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/5parts/睡眠个体内HRV特征相关性对比5(4).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/5parts/睡眠个体间HRV特征相关性对比5(4).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="part4-tab5">
+                <div class="images-wrapper">
+                    <div class="image-container">
+                        <img src="images/test/5parts/睡眠个体内HRV特征相关性对比5(5).png" alt="睡眠个体内HRV特征相关性对比">
+                        <div class="image-label">睡眠个体内HRV特征相关性对比</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/test/5parts/睡眠个体间HRV特征相关性对比5(5).png" alt="睡眠个体间HRV特征相关性对比">
+                        <div class="image-label">睡眠个体间HRV特征相关性对比</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab切换逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.tab');
+            const sections = document.querySelectorAll('.section');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    
+                    // 移除同组其他tab的active状态
+                    const tabsContainer = this.parentElement;
+                    tabsContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    
+                    // 添加当前tab的active状态
+                    this.classList.add('active');
+                    
+                    // 隐藏同组其他内容
+                    const contentContainer = tabsContainer.nextElementSibling;
+                    contentContainer.querySelectorAll('.tab-content').forEach(content => {
+                        content.style.display = 'none';
+                        content.classList.remove('active');
+                    });
+                    
+                    // 显示当前内容（带动画）
+                    const activeContent = document.getElementById(tabId);
+                    if (activeContent) {
+                        activeContent.classList.add('active');
+                        activeContent.style.display = 'block';
+                        
+                        // 添加渐变动画效果
+                        activeContent.style.animation = 'fadeIn 0.5s ease-out';
+                    }
+                });
+            });
+            
+            // 滚动监听，实现tab固定在顶部
+            window.addEventListener('scroll', function() {
+                const scrollTop = window.scrollY;
+                
+                // 移除所有tabs-container的sticky类
+                document.querySelectorAll('.tabs-container').forEach(container => {
+                    container.classList.remove('sticky');
+                });
+                
+                // 找到当前可见的section并固定其tabs
+                sections.forEach((section, index) => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.offsetHeight;
+                    const titleHeight = section.querySelector('.section-title').offsetHeight;
+                    const tabsHeight = section.querySelector('.tabs-container').offsetHeight;
+                    
+                    // 当滚动到section的内容区域时，固定tabs
+                    if (scrollTop >= sectionTop + titleHeight && scrollTop < sectionTop + sectionHeight - tabsHeight) {
+                        section.querySelector('.tabs-container').classList.add('sticky');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <style>
+        /* 渐变动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</body>
+</html>
